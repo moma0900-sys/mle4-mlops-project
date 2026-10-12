@@ -17,6 +17,11 @@ parameters = [{
     "year": 2024,
     "month": 8,
     "color": "green"
+},
+{
+    "year": 2025,
+    "month": 1,
+    "color": "green"
 }]
 
 
