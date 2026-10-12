@@ -2,6 +2,22 @@ name: Train taxi model
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "00_project_implementation/train.py"
+      - "00_project_implementation/prepare_data.py"
+      - "data/green_tripdata_2024-01.parquet.dvc"
+      - ".dvc/config"
+      - ".python-version"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/dvc-check.yaml"
+
+concurrency:
+  group: taxi-model-training
+  cancel-in-progress: false
 
 permissions:
   contents: read
