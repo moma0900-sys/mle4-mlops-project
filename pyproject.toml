@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "click>=8.3.0",
-    "dvc>=3.67.1",
+    "dvc[gdrive]>=3.67.1",
     "evidently>=0.7.23",
     "fastapi>=0.136.1",
     "joblib>=1.5.2",
@@ -19,6 +19,8 @@ dependencies = [
     "scikit-learn>=1.9.1",
     "skops>=0.16.0",
     "uvicorn>=0.38.0",
+    "pydrive2==1.21.3",
+    "pyopenssl==24.2.1",
 ]
 
 [dependency-groups]
