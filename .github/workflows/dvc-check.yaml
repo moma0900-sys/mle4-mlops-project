@@ -1,4 +1,4 @@
-name: Check DVC access
+name: Train taxi model
 
 on:
   workflow_dispatch:
@@ -35,3 +35,10 @@ jobs:
         env:
           GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
         run: uv run dvc pull data/green_tripdata_2024-01.parquet.dvc
+
+      - name: Train model and track with MLflow
+        env:
+          MLFLOW_TRACKING_URI: https://dagshub.com/moma0900/mle4-mlops-project.mlflow
+          MLFLOW_TRACKING_USERNAME: moma0900
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+        run: uv run python 00_project_implementation/train.py green_tripdata_2024-01.parquet

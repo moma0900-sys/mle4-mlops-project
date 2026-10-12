@@ -1,11 +1,9 @@
 '''Administring and documenting results of trained models in mlflow'''
-from pathlib import Path
+import os
 import mlflow
 
-project_dir = Path(__file__).resolve().parent.parent
-tracking_db = project_dir / "mlflow.db"
 
-mlflow.set_tracking_uri(f"sqlite:///{tracking_db.as_posix()}")
+mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
 
 '''Loading tuned model'''

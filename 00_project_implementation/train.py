@@ -1,5 +1,6 @@
 '''.'''
 from pathlib import Path
+import os
 
 '''Split Dataset for testing'''
 from sklearn.model_selection import train_test_split
@@ -65,8 +66,7 @@ def main(load_parquet: str) -> None:
     print("Rows after cleaning:", len(df_clean))
 
 # Local mflow.db
-    tracking_db = project_dir / "mlflow.db"
-    mlflow.set_tracking_uri(f"sqlite:///{tracking_db.as_posix()}")
+    mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
 # Register new experiment named "green-taxi-random-forest", description and tags
 # Expermient sammelt zusammengehörige Trainingsläufe
