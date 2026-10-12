@@ -1,0 +1,37 @@
+name: Check DVC access
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          version: "0.11.19"
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Activate service account
+        run: uv run dvc remote modify --local gdrive gdrive_use_service_account true
+
+      - name: Download training data
+        env:
+          GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+        run: uv run dvc pull data/green_tripdata_2024-01.parquet.dvc
