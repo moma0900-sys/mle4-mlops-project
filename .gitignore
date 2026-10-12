@@ -165,3 +165,6 @@ cython_debug/
 /mlruns/
 /mlartifacts/
 /mlflow.db*
+
+# Generated API prediction log
+/monitoring/prediction_log.csv

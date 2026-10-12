@@ -7,8 +7,18 @@ from fastapi import FastAPI, HTTPException
 from pathlib import Path
 from threading import Lock
 
+from time import perf_counter
+from fastapi.responses import Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Histogram,
+    generate_latest,
+)
+
 from pipeline import load_pipeline, predict_duration
 from train import main as train_model
+from prediction_logging import log_prediction
 
 
 
@@ -30,16 +40,49 @@ class TrainingInput(BaseModel):
 #TERMINAL- COMMAND: uv run uvicorn api:app --app-dir 00_project_implementation --host 127.0.0.1 --port 8000 --reload
 app = FastAPI()
 
+PREDICTION_REQUESTS = Counter(
+    "taxi_prediction_requests_total",
+    "Number of prediction requests by HTTP status.",
+    ["status"],
+)
+
+PREDICTION_LATENCY = Histogram(
+    "taxi_prediction_duration_seconds",
+    "Server processing time for prediction requests.",
+)
+
+
+@app.middleware("http")
+async def monitor_predictions(request, call_next):
+    if request.method != "POST" or request.url.path != "/predict":
+        return await call_next(request)
+
+    start = perf_counter()
+    status = 500
+
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    finally:
+        PREDICTION_REQUESTS.labels(status=str(status)).inc()
+        PREDICTION_LATENCY.observe(perf_counter() - start)
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics():
+    return Response(
+        content=generate_latest(),
+        headers={"Content-Type": CONTENT_TYPE_LATEST},
+    )
+
+
+
 ''' Tuned model saved in mlflow'''
 model_uri = "models:/green-taxi-random-forest@production"
 
 ''' Load tuned model once as API starts'''
 model = load_pipeline(model_uri)
-
-
-
-#@app.get("/Check System Health")
-
 
 
 '''
@@ -48,12 +91,16 @@ model = load_pipeline(model_uri)
     Ungültige Eingaben werden abgewiesen.
 '''
 @app.post("/predict")           #Aufruf bei Post: '/Predict'- Anfrage, übermitteln an API mittels Decorator
-def predict(ride:RideInput):
-    ride_data = pd.DataFrame([ride.model_dump()])     # .model_dump() wandelt das 'RideInput'-Objekt in ein Dictionary um
+def predict(ride: RideInput):
+    inputs = ride.model_dump()
+    ride_data = pd.DataFrame([inputs])
 
     predictions = predict_duration(model, ride_data)
-    predicted_duration_minutes = {"predicted_duration_minutes": float(predictions[0])}
-    return predicted_duration_minutes
+    prediction = float(predictions[0])
+
+    log_prediction(inputs, prediction)
+
+    return {"predicted_duration_minutes": prediction}
 
 
 # Sorgt dafür, dass kein 2. Lauf gestartet werden kann während der erste noch läuft
