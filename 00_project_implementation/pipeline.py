@@ -1,6 +1,14 @@
 '''Administring and documenting results of trained models in mlflow'''
 import os
 import mlflow
+from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv(
+    Path(__file__).resolve().parent.parent / ".env",
+    override=False,
+)
 
 
 mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])

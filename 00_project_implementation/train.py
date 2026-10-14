@@ -29,6 +29,16 @@ import argparse
 ''' From other script files'''
 from prepare_data import load_data, clean_data
 
+'''Load secrets for dagshub'''
+from dotenv import load_dotenv
+
+
+
+load_dotenv(
+    Path(__file__).resolve().parent.parent / ".env",
+    override=False,
+)
+
 
 # Calling train.py with argument of parquet file, e.g.:
 # uv run python 00_project_implementation/train.py green_tripdata_2024-01.parquet
@@ -65,7 +75,7 @@ def main(load_parquet: str) -> None:
     print(f"Using {parquet_file_raw} for training.")
     print("Rows after cleaning:", len(df_clean))
 
-# Local mflow.db
+# Online mflow.db, tracking on dagshub.com
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
 # Register new experiment named "green-taxi-random-forest", description and tags
